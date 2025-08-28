@@ -2,226 +2,229 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Chat App</title>
+  <link rel="stylesheet" href="styles.css" />
   <style>
     body {
-      font-family: Arial, sans-serif;
-      background-color: #f0f2f5;
+      font-family: sans-serif;
       margin: 0;
       display: flex;
-      justify-content: center;
-      align-items: center;
       height: 100vh;
     }
-    #chat-container {
+    .container {
+      display: flex;
       width: 100%;
-      max-width: 600px;
-      background-color: #fff;
-      border-radius: 8px;
-      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+    .sidebar {
+      width: 250px;
+      background: #f4f4f4;
+      padding: 10px;
+      border-right: 1px solid #ccc;
+    }
+    .chat {
+      flex: 1;
       display: flex;
       flex-direction: column;
-      height: 80vh;
-      overflow: hidden;
     }
-    #chat-header {
+    .chat-header {
+      padding: 10px;
+      background: #eee;
+      font-weight: bold;
+    }
+    .chat-messages {
+      flex: 1;
+      padding: 10px;
+      overflow-y: auto;
+    }
+    .chat-input {
+      display: flex;
+      padding: 10px;
+      border-top: 1px solid #ccc;
+    }
+    .chat-input input {
+      flex: 1;
+      padding: 8px;
+      font-size: 16px;
+    }
+    .chat-input button {
+      padding: 8px 12px;
+    }
+    .friend-item {
       display: flex;
       align-items: center;
-      justify-content: space-between;
-      padding: 10px 15px;
-      border-bottom: 1px solid #ddd;
-      background-color: #f8f9fa;
+      cursor: pointer;
+      margin-bottom: 10px;
     }
-    #friend-pic {
+    .friend-item img {
       width: 40px;
       height: 40px;
       border-radius: 50%;
-      object-fit: cover;
-    }
-    #friend-name {
-      flex-grow: 1;
-      margin-left: 10px;
-      font-weight: bold;
-    }
-    #close-chat {
-      background-color: #dc3545;
-      color: white;
-      border: none;
-      padding: 6px 12px;
-      border-radius: 4px;
-      cursor: pointer;
-    }
-    #close-chat:hover {
-      background-color: #c82333;
-    }
-    #friend-list {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      padding: 10px;
-      overflow-x: auto;
-      border-bottom: 1px solid #ddd;
-    }
-    .friend-btn {
-      padding: 8px 12px;
-      border: none;
-      background-color: #007bff;
-      color: white;
-      border-radius: 20px;
-      cursor: pointer;
-    }
-    .friend-btn:hover {
-      background-color: #0056b3;
-    }
-    #messages {
-      flex-grow: 1;
-      list-style-type: none;
-      margin: 0;
-      padding: 20px;
-      overflow-y: scroll;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-    .message {
-      padding: 8px 12px;
-      border-radius: 18px;
-      max-width: 70%;
-      word-wrap: break-word;
-    }
-    .my-message {
-      align-self: flex-end;
-      background-color: #007bff;
-      color: #fff;
-    }
-    .their-message {
-      align-self: flex-start;
-      background-color: #e4e6eb;
-      color: #000;
-    }
-    #form {
-      display: flex;
-      padding: 10px;
-      border-top: 1px solid #ddd;
-    }
-    #input {
-      flex-grow: 1;
-      padding: 10px;
-      border: 1px solid #ccc;
-      border-radius: 20px;
       margin-right: 10px;
     }
-    button {
-      padding: 10px 20px;
-      border: none;
-      background-color: #007bff;
-      color: white;
-      border-radius: 20px;
-      cursor: pointer;
-      transition: background-color 0.3s;
+    #typingIndicator {
+      padding: 5px;
+      font-style: italic;
+      color: #555;
     }
-    button:hover {
-      background-color: #0056b3;
+    /* Modal Styling */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 100;
+      left: 0; top: 0;
+      width: 100%; height: 100%;
+      background-color: rgba(0,0,0,0.5);
+    }
+    .modal-content {
+      background-color: #fff;
+      margin: 15% auto;
+      padding: 20px;
+      width: 300px;
+      border-radius: 8px;
+    }
+    .close {
+      float: right;
+      font-size: 24px;
+      cursor: pointer;
+    }
+    @media (max-width: 600px) {
+      .container {
+        flex-direction: column;
+      }
+      .sidebar {
+        width: 100%;
+        border-right: none;
+        border-bottom: 1px solid #ccc;
+      }
     }
   </style>
 </head>
 <body>
-  <div id="chat-container">
-    <div id="chat-header">
-      <img id="friend-pic" src="" alt="Friend" />
-      <span id="friend-name">Select a friend</span>
-      <button id="close-chat">Close</button>
+  <div class="container">
+    <div class="sidebar">
+      <h2>Friends</h2>
+      <button onclick="openModal()">➕ Add Friend</button>
+      <ul id="friendList"></ul>
     </div>
-    <div id="friend-list"></div>
-    <ul id="messages"></ul>
-    <form id="form">
-      <input id="input" autocomplete="off" placeholder="Type a message..." />
-      <button>Send</button>
-    </form>
+    <div class="chat">
+      <div class="chat-header" id="chatHeader">Select a friend to chat</div>
+      <div id="typingIndicator"></div>
+      <div class="chat-messages" id="chatMessages"></div>
+      <div class="chat-input">
+        <input type="text" id="messageInput" placeholder="Type a message..." />
+        <button onclick="sendMessage()">Send</button>
+      </div>
+    </div>
   </div>
 
-  <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+  <!-- Add Friend Modal -->
+  <div id="addFriendModal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="closeModal()">&times;</span>
+      <h3>Add a Friend</h3>
+      <input type="text" id="friendIdInput" placeholder="Enter Unique ID" />
+      <button onclick="submitAddFriend()">Add</button>
+    </div>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
   <script>
-    const KOYEB_URL = 'https://sleepy-freddi-primellw-06a0752a.koyeb.app';
-    const token = localStorage.getItem('token');
-    const myId = localStorage.getItem('userId');
-    const socket = io(KOYEB_URL, { auth: { token } });
+    const socket = io();
+    let currentFriendId = null;
 
-    const form = document.getElementById('form');
-    const input = document.getElementById('input');
-    const messages = document.getElementById('messages');
-    const friendList = document.getElementById('friend-list');
-    const friendPic = document.getElementById('friend-pic');
-    const friendName = document.getElementById('friend-name');
-    const closeChatBtn = document.getElementById('close-chat');
-
-    let currentFriend = null;
-
-    async function loadFriends() {
-      const res = await fetch(`${KOYEB_URL}/api/friends`, {
-        headers: { Authorization: `Bearer ${token}` }
+    async function fetchFriends() {
+      const res = await fetch('/api/friends', {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
       });
       const friends = await res.json();
+      const list = document.getElementById('friendList');
+      list.innerHTML = '';
       friends.forEach(friend => {
-        const btn = document.createElement('button');
-        btn.textContent = friend.username;
-        btn.classList.add('friend-btn');
-        btn.onclick = () => openChat(friend);
-        friendList.appendChild(btn);
+        const li = document.createElement('li');
+        li.className = 'friend-item';
+        li.innerHTML = `<img src="${friend.profilePicture}" /><span>${friend.username}</span>`;
+        li.onclick = () => openChat(friend);
+        list.appendChild(li);
       });
     }
 
-    async function loadMessages(friendId) {
-      const res = await fetch(`${KOYEB_URL}/api/messages/${friendId}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      const messagesData = await res.json();
-      messages.innerHTML = '';
-      messagesData.forEach(msg => {
-        const item = document.createElement('li');
-        item.textContent = msg.text;
-        item.classList.add('message');
-        item.classList.add(msg.senderId === myId ? 'my-message' : 'their-message');
-        messages.appendChild(item);
-      });
-      messages.scrollTop = messages.scrollHeight;
+    function openModal() {
+      document.getElementById('addFriendModal').style.display = 'block';
     }
 
-    function openChat(friend) {
-      currentFriend = friend;
-      friendPic.src = friend.profilePicture;
-      friendName.textContent = friend.username;
-      loadMessages(friend.id);
+    function closeModal() {
+      document.getElementById('addFriendModal').style.display = 'none';
     }
 
-    closeChatBtn.addEventListener('click', () => {
-      currentFriend = null;
-      messages.innerHTML = '';
-      friendPic.src = '';
-      friendName.textContent = 'Select a friend';
+    function submitAddFriend() {
+      const uniqueId = document.getElementById('friendIdInput').value;
+      if (uniqueId) {
+        fetch('/api/add-friend', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${localStorage.getItem('token')}`
+          },
+          body: JSON.stringify({ uniqueId })
+        }).then(() => {
+          fetchFriends();
+          closeModal();
+        });
+      }
+    }
+
+    async function openChat(friend) {
+      currentFriendId = friend.id;
+      document.getElementById('chatHeader').textContent = friend.username;
+      const res = await fetch(`/api/messages/${friend.id}`, {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+      });
+      const messages = await res.json();
+      const chat = document.getElementById('chatMessages');
+      chat.innerHTML = '';
+      messages.forEach(msg => appendMessage(msg));
+    }
+
+    function formatTimestamp(ts) {
+      const date = new Date(ts);
+      return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    }
+
+    function appendMessage(msg) {
+      const div = document.createElement('div');
+      div.textContent = `${msg.senderName}: ${msg.text} (${formatTimestamp(msg.timestamp)})`;
+      document.getElementById('chatMessages').appendChild(div);
+    }
+
+    function sendMessage() {
+      const input = document.getElementById('messageInput');
+      const text = input.value;
+      if (text && currentFriendId) {
+        socket.emit('sendMessage', { to: currentFriendId, text });
+        input.value = '';
+      }
+    }
+
+    document.getElementById('messageInput').addEventListener('input', () => {
+      socket.emit('typing', { to: currentFriendId });
     });
 
-    form.addEventListener('submit', function(e) {
-      e.preventDefault();
-      if (input.value && currentFriend) {
-        const messageData = { text: input.value, receiverId: currentFriend.id };
-        socket.emit('sendMessage', messageData);
-        input.value = '';
+    socket.on('typing', data => {
+      if (data.senderId === currentFriendId) {
+        document.getElementById('typingIndicator').textContent = `${data.senderName} is typing...`;
+        setTimeout(() => {
+          document.getElementById('typingIndicator').textContent = '';
+        }, 2000);
       }
     });
 
-    socket.on('receiveMessage', function(msg) {
-      if (!currentFriend || (msg.senderId !== currentFriend.id && msg.receiverId !== currentFriend.id)) return;
-      const item = document.createElement('li');
-      item.textContent = msg.text;
-      item.classList.add('message');
-      item.classList.add(msg.senderId === myId ? 'my-message' : 'their-message');
-      messages.appendChild(item);
-      messages.scrollTop = messages.scrollHeight;
+    socket.on('receiveMessage', msg => {
+      if (msg.senderId === currentFriendId) {
+        appendMessage(msg);
+      }
     });
 
-    loadFriends();
+    fetchFriends();
   </script>
 </body>
 </html>
