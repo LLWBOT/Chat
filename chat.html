@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Chat</title>
+  <style>
+    body { font-family: sans-serif; background-color: #f0f2f5; margin: 0; display: flex; justify-content: center; align-items: center; height: 100vh; }
+    #chat-container { width: 100%; max-width: 600px; background-color: #fff; border-radius: 8px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); display: flex; flex-direction: column; height: 80vh; }
+    #header { background-color: #007bff; color: #fff; padding: 15px; border-top-left-radius: 8px; border-top-right-radius: 8px; text-align: center; font-size: 1.2em; font-weight: bold; }
+    #messages { flex-grow: 1; list-style-type: none; margin: 0; padding: 20px; overflow-y: scroll; display: flex; flex-direction: column; gap: 10px; }
+    .message { padding: 8px 12px; border-radius: 18px; max-width: 70%; word-wrap: break-word; }
+    .my-message { align-self: flex-end; background-color: #007bff; color: #fff; }
+    .their-message { align-self: flex-start; background-color: #e4e6eb; color: #000; }
+    #form { display: flex; padding: 10px; border-top: 1px solid #ddd; }
+    #input { flex-grow: 1; padding: 10px; border: 1px solid #ccc; border-radius: 20px; margin-right: 10px; }
+    button { padding: 10px 20px; border: none; background-color: #007bff; color: white; border-radius: 20px; cursor: pointer; transition: background-color 0.3s; }
+    button:hover { background-color: #0056b3; }
+  </style>
+</head>
+<body>
+  <div id="chat-container">
+    <div id="header">Chat with a Friend</div>
+    <ul id="messages"></ul>
+    <form id="form">
+      <input id="input" autocomplete="off" placeholder="Type a message..." />
+      <button>Send</button>
+    </form>
+  </div>
+  
+  <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+  <script>
+    const KOYEB_URL = '<YOUR_KOYEB_URL>'; 
+    const socket = io(KOYEB_URL, {
+        auth: { token: localStorage.getItem('token') }
+    }); 
+
+    const form = document.getElementById('form');
+    const input = document.getElementById('input');
+    const messages = document.getElementById('messages');
+    
+    // In a real app, you would have a more complex way to manage chat rooms.
+    // For now, this is a basic demonstration.
+    
+    form.addEventListener('submit', function(e) {
+      e.preventDefault();
+      if (input.value) {
+        const messageData = {
+          text: input.value,
+          // This will be added on the backend once authenticated
+          // senderId: '...' 
+        };
+        socket.emit('sendMessage', messageData);
+        input.value = '';
+      }
+    });
+
+    socket.on('receiveMessage', function(msg) {
+        // You would need to check if this message is for the current chat room
+        // For this example, we'll just display it.
+        const item = document.createElement('li');
+        item.textContent = msg.text;
+        item.classList.add('message');
+        // You'll need more logic here to determine if it's your message or someone else's
+        item.classList.add('their-message');
+        messages.appendChild(item);
+        messages.scrollTop = messages.scrollHeight;
+    });
+  </script>
+</body>
+</html>
