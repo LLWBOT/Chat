@@ -1,69 +1,227 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Chat</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Chat App</title>
   <style>
-    body { font-family: sans-serif; background-color: #f0f2f5; margin: 0; display: flex; justify-content: center; align-items: center; height: 100vh; }
-    #chat-container { width: 100%; max-width: 600px; background-color: #fff; border-radius: 8px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); display: flex; flex-direction: column; height: 80vh; }
-    #header { background-color: #007bff; color: #fff; padding: 15px; border-top-left-radius: 8px; border-top-right-radius: 8px; text-align: center; font-size: 1.2em; font-weight: bold; }
-    #messages { flex-grow: 1; list-style-type: none; margin: 0; padding: 20px; overflow-y: scroll; display: flex; flex-direction: column; gap: 10px; }
-    .message { padding: 8px 12px; border-radius: 18px; max-width: 70%; word-wrap: break-word; }
-    .my-message { align-self: flex-end; background-color: #007bff; color: #fff; }
-    .their-message { align-self: flex-start; background-color: #e4e6eb; color: #000; }
-    #form { display: flex; padding: 10px; border-top: 1px solid #ddd; }
-    #input { flex-grow: 1; padding: 10px; border: 1px solid #ccc; border-radius: 20px; margin-right: 10px; }
-    button { padding: 10px 20px; border: none; background-color: #007bff; color: white; border-radius: 20px; cursor: pointer; transition: background-color 0.3s; }
-    button:hover { background-color: #0056b3; }
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f0f2f5;
+      margin: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+    #chat-container {
+      width: 100%;
+      max-width: 600px;
+      background-color: #fff;
+      border-radius: 8px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      display: flex;
+      flex-direction: column;
+      height: 80vh;
+      overflow: hidden;
+    }
+    #chat-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 15px;
+      border-bottom: 1px solid #ddd;
+      background-color: #f8f9fa;
+    }
+    #friend-pic {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+    #friend-name {
+      flex-grow: 1;
+      margin-left: 10px;
+      font-weight: bold;
+    }
+    #close-chat {
+      background-color: #dc3545;
+      color: white;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    #close-chat:hover {
+      background-color: #c82333;
+    }
+    #friend-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      padding: 10px;
+      overflow-x: auto;
+      border-bottom: 1px solid #ddd;
+    }
+    .friend-btn {
+      padding: 8px 12px;
+      border: none;
+      background-color: #007bff;
+      color: white;
+      border-radius: 20px;
+      cursor: pointer;
+    }
+    .friend-btn:hover {
+      background-color: #0056b3;
+    }
+    #messages {
+      flex-grow: 1;
+      list-style-type: none;
+      margin: 0;
+      padding: 20px;
+      overflow-y: scroll;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .message {
+      padding: 8px 12px;
+      border-radius: 18px;
+      max-width: 70%;
+      word-wrap: break-word;
+    }
+    .my-message {
+      align-self: flex-end;
+      background-color: #007bff;
+      color: #fff;
+    }
+    .their-message {
+      align-self: flex-start;
+      background-color: #e4e6eb;
+      color: #000;
+    }
+    #form {
+      display: flex;
+      padding: 10px;
+      border-top: 1px solid #ddd;
+    }
+    #input {
+      flex-grow: 1;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 20px;
+      margin-right: 10px;
+    }
+    button {
+      padding: 10px 20px;
+      border: none;
+      background-color: #007bff;
+      color: white;
+      border-radius: 20px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
   </style>
 </head>
 <body>
   <div id="chat-container">
-    <div id="header">Chat with a Friend</div>
+    <div id="chat-header">
+      <img id="friend-pic" src="" alt="Friend" />
+      <span id="friend-name">Select a friend</span>
+      <button id="close-chat">Close</button>
+    </div>
+    <div id="friend-list"></div>
     <ul id="messages"></ul>
     <form id="form">
       <input id="input" autocomplete="off" placeholder="Type a message..." />
       <button>Send</button>
     </form>
   </div>
-  
+
   <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
   <script>
-    const KOYEB_URL = 'https://sleepy-freddi-primellw-06a0752a.koyeb.app'; 
-    const socket = io(KOYEB_URL, {
-        auth: { token: localStorage.getItem('token') }
-    }); 
+    const KOYEB_URL = 'https://sleepy-freddi-primellw-06a0752a.koyeb.app';
+    const token = localStorage.getItem('token');
+    const myId = localStorage.getItem('userId');
+    const socket = io(KOYEB_URL, { auth: { token } });
 
     const form = document.getElementById('form');
     const input = document.getElementById('input');
     const messages = document.getElementById('messages');
-    
-    // In a real app, you would have a more complex way to manage chat rooms.
-    // For now, this is a basic demonstration.
-    
+    const friendList = document.getElementById('friend-list');
+    const friendPic = document.getElementById('friend-pic');
+    const friendName = document.getElementById('friend-name');
+    const closeChatBtn = document.getElementById('close-chat');
+
+    let currentFriend = null;
+
+    async function loadFriends() {
+      const res = await fetch(`${KOYEB_URL}/api/friends`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const friends = await res.json();
+      friends.forEach(friend => {
+        const btn = document.createElement('button');
+        btn.textContent = friend.username;
+        btn.classList.add('friend-btn');
+        btn.onclick = () => openChat(friend);
+        friendList.appendChild(btn);
+      });
+    }
+
+    async function loadMessages(friendId) {
+      const res = await fetch(`${KOYEB_URL}/api/messages/${friendId}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const messagesData = await res.json();
+      messages.innerHTML = '';
+      messagesData.forEach(msg => {
+        const item = document.createElement('li');
+        item.textContent = msg.text;
+        item.classList.add('message');
+        item.classList.add(msg.senderId === myId ? 'my-message' : 'their-message');
+        messages.appendChild(item);
+      });
+      messages.scrollTop = messages.scrollHeight;
+    }
+
+    function openChat(friend) {
+      currentFriend = friend;
+      friendPic.src = friend.profilePicture;
+      friendName.textContent = friend.username;
+      loadMessages(friend.id);
+    }
+
+    closeChatBtn.addEventListener('click', () => {
+      currentFriend = null;
+      messages.innerHTML = '';
+      friendPic.src = '';
+      friendName.textContent = 'Select a friend';
+    });
+
     form.addEventListener('submit', function(e) {
       e.preventDefault();
-      if (input.value) {
-        const messageData = {
-          text: input.value,
-          // This will be added on the backend once authenticated
-          // senderId: '...' 
-        };
+      if (input.value && currentFriend) {
+        const messageData = { text: input.value, receiverId: currentFriend.id };
         socket.emit('sendMessage', messageData);
         input.value = '';
       }
     });
 
     socket.on('receiveMessage', function(msg) {
-        // You would need to check if this message is for the current chat room
-        // For this example, we'll just display it.
-        const item = document.createElement('li');
-        item.textContent = msg.text;
-        item.classList.add('message');
-        // You'll need more logic here to determine if it's your message or someone else's
-        item.classList.add('their-message');
-        messages.appendChild(item);
-        messages.scrollTop = messages.scrollHeight;
+      if (!currentFriend || (msg.senderId !== currentFriend.id && msg.receiverId !== currentFriend.id)) return;
+      const item = document.createElement('li');
+      item.textContent = msg.text;
+      item.classList.add('message');
+      item.classList.add(msg.senderId === myId ? 'my-message' : 'their-message');
+      messages.appendChild(item);
+      messages.scrollTop = messages.scrollHeight;
     });
+
+    loadFriends();
   </script>
 </body>
 </html>
