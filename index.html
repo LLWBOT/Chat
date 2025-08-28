@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>LLW CHAT</title>
+  <style>
+    body { font-family: sans-serif; background-color: #f0f2f5; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+    #container { background-color: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); width: 100%; max-width: 400px; text-align: center; }
+    h1 { color: #007bff; margin-bottom: 20px; }
+    h2 { color: #333; }
+    form { display: flex; flex-direction: column; gap: 15px; }
+    input { padding: 10px; border: 1px solid #ccc; border-radius: 4px; }
+    button { padding: 10px; border: none; background-color: #007bff; color: white; border-radius: 4px; cursor: pointer; transition: background-color 0.3s; }
+    button:hover { background-color: #0056b3; }
+    #toggle-form { margin-top: 10px; font-size: 0.9em; color: #007bff; cursor: pointer; }
+  </style>
+</head>
+<body>
+  <div id="container">
+    <h1>LLW CHAT</h1>
+    <h2 id="form-title">Register</h2>
+    <form id="auth-form">
+      <input type="text" id="username" placeholder="Username" required>
+      <input type="password" id="password" placeholder="Password" required>
+      <button type="submit" id="submit-btn">Register</button>
+    </form>
+    <p id="toggle-form">Already have an account? Log In</p>
+  </div>
+
+  <script>
+    const authForm = document.getElementById('auth-form');
+    const formTitle = document.getElementById('form-title');
+    const submitBtn = document.getElementById('submit-btn');
+    const toggleForm = document.getElementById('toggle-form');
+    const usernameInput = document.getElementById('username');
+    const passwordInput = document.getElementById('password');
+    let isRegistering = true;
+
+    toggleForm.addEventListener('click', () => {
+      isRegistering = !isRegistering;
+      if (isRegistering) {
+        formTitle.textContent = 'Register';
+        submitBtn.textContent = 'Register';
+        toggleForm.textContent = 'Already have an account? Log In';
+      } else {
+        formTitle.textContent = 'Log In';
+        submitBtn.textContent = 'Log In';
+        toggleForm.textContent = 'Need an account? Register';
+      }
+    });
+
+    authForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const username = usernameInput.value;
+      const password = passwordInput.value;
+      const url = isRegistering ? 'https://<YOUR_KOYEB_URL>/api/register' : 'https://<YOUR_KOYEB_URL>/api/login';
+
+      try {
+        const response = await fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password })
+        });
+        const data = await response.json();
+
+        if (response.ok) {
+          localStorage.setItem('token', data.token);
+          // Redirect to the home page after successful login/registration
+          window.location.href = 'home.html';
+        } else {
+          alert(data.message);
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        alert('An error occurred. Please try again.');
+      }
+    });
+  </script>
+</body>
+</html>
